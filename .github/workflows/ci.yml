@@ -26,5 +26,10 @@ jobs:
         run: ruff format --check .
       - name: Type check
         run: mypy src
+      - name: Install German locale for the locale test
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y locales
+          sudo locale-gen de_DE.UTF-8
       - name: Test
         run: pytest

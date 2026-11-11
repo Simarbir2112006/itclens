@@ -7,7 +7,7 @@ import math
 import re
 from collections.abc import Sequence
 from datetime import date, datetime
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import ROUND_HALF_UP, Context, Decimal
 
 MONTH_NAMES = (
     "January",
@@ -52,12 +52,30 @@ def _strip_fy_affix(text: str) -> str:
     return text
 
 
+def plain_number_text(value: int | float | Decimal) -> str:
+    """Render a number as plain decimal text without an exponent.
+
+    Integral values lose their fractional part, so 1.0 gives "1" and
+    Decimal("1001.00") gives "1001". Other values keep their digits, for example
+    1.5 gives "1.5". Floats go through repr first.
+    """
+    if isinstance(value, int):
+        return str(value)
+    number = Decimal(repr(value)) if isinstance(value, float) else value
+    if not number.is_finite():
+        return str(number)
+    if number == number.to_integral_value():
+        number = number.to_integral_value()
+    return format(number, "f")
+
+
 def normalize_invoice_no(raw: object, *, strip_fy_affixes: bool = False) -> str:
     """Normalize an invoice number for matching.
 
     Rules, in order:
-    1. None becomes "", other non-strings go through str(); surrounding whitespace
-       is removed and the text is uppercased.
+    1. None becomes "". Numbers (int, float, Decimal) become plain_number_text, so
+       1001.0 read from a spreadsheet gives "1001". Other non-strings go through
+       str(). Surrounding whitespace is removed and the text is uppercased.
     2. If strip_fy_affixes is set, one financial-year token at the very end, or
        else at the very start, is removed together with its single separator
        (/ - _ or space). A token is YYYY-YY, YYYY-YYYY or YY-YY (inner separator
@@ -76,7 +94,13 @@ def normalize_invoice_no(raw: object, *, strip_fy_affixes: bool = False) -> str:
     """
     if raw is None:
         return ""
-    text = (raw if isinstance(raw, str) else str(raw)).strip().upper()
+    if isinstance(raw, str):
+        text = raw
+    elif isinstance(raw, int | float | Decimal) and not isinstance(raw, bool):
+        text = plain_number_text(raw)
+    else:
+        text = str(raw)
+    text = text.strip().upper()
     if strip_fy_affixes:
         text = _strip_fy_affix(text)
     text = _NON_ALNUM.sub("", text)
@@ -85,6 +109,14 @@ def normalize_invoice_no(raw: object, *, strip_fy_affixes: bool = False) -> str:
         return "0"
     return stripped
 
+
+# Amounts at or above this are rejected as implausible. Keeping parsed values small
+# also guarantees that round_money can always quantize them.
+MAX_MONEY = Decimal("1e13")
+MAX_MONEY_TEXT_LENGTH = 40
+
+_MONEY_CONTEXT = Context(prec=28)
+_CENTS = Decimal("0.01")
 
 _CURRENCY_PREFIX = re.compile(r"^(?:₹|RS\.?|INR)\s*", re.IGNORECASE)
 _PLAIN_NUMBER = re.compile(r"^(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)$")
@@ -109,6 +141,8 @@ def _remove_grouping(number: str) -> str | None:
 
 def _parse_money_text(text: str) -> Decimal | None:
     text = text.strip()
+    if len(text) > MAX_MONEY_TEXT_LENGTH:
+        return None
     negative = False
     if text.startswith("(") and text.endswith(")"):
         negative = True
@@ -133,23 +167,32 @@ def parse_money(value: object) -> Decimal | None:
 
     Accepts int, Decimal, float (converted through repr, so 0.1 gives
     Decimal("0.1")) and strings such as "1,23,456.78", "Rs. 500", "(250)" or
-    "-₹10". Booleans, NaN, infinity and unrecognised text give None.
+    "-₹10". Booleans, NaN, infinity, unrecognised text, strings longer than
+    MAX_MONEY_TEXT_LENGTH and amounts whose absolute value is MAX_MONEY or more
+    give None.
     """
+    amount: Decimal | None = None
     if isinstance(value, bool):
         return None
     if isinstance(value, int):
-        return Decimal(value)
-    if isinstance(value, float):
-        return Decimal(repr(value)) if math.isfinite(value) else None
-    if isinstance(value, Decimal):
-        return value if value.is_finite() else None
-    if isinstance(value, str):
-        return _parse_money_text(value)
-    return None
+        amount = Decimal(value)
+    elif isinstance(value, float):
+        amount = Decimal(repr(value)) if math.isfinite(value) else None
+    elif isinstance(value, Decimal):
+        amount = value
+    elif isinstance(value, str):
+        amount = _parse_money_text(value)
+    if amount is None or not amount.is_finite() or amount.copy_abs() >= MAX_MONEY:
+        return None
+    return amount
 
 
 def round_money(amount: Decimal) -> Decimal:
-    return amount.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    """Round to paise with ROUND_HALF_UP, independent of the caller's decimal context.
+
+    Never raises for a value returned by parse_money.
+    """
+    return amount.quantize(_CENTS, rounding=ROUND_HALF_UP, context=_MONEY_CONTEXT)
 
 
 def within_tolerance(a: Decimal, b: Decimal, tolerance: Decimal) -> bool:

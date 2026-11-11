@@ -13,6 +13,8 @@ make install
 make check
 ```
 
+The locale test needs the de_DE.UTF-8 locale installed to run; otherwise it is skipped.
+
 ## Privacy
 
 Uploaded files are processed in memory and are not stored.

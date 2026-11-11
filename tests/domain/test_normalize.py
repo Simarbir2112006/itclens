@@ -1,6 +1,6 @@
 import locale
 from datetime import date, datetime
-from decimal import Decimal
+from decimal import Decimal, localcontext
 
 import pytest
 from hypothesis import given
@@ -8,9 +8,11 @@ from hypothesis import strategies as st
 
 from itclens.domain.config import load_config
 from itclens.domain.normalize import (
+    MAX_MONEY,
     normalize_invoice_no,
     parse_date,
     parse_money,
+    plain_number_text,
     round_money,
     within_tolerance,
 )
@@ -286,3 +288,88 @@ def test_month_names_do_not_depend_on_locale() -> None:
         locale.setlocale(locale.LC_ALL, previous)
     if not tried:
         pytest.skip("no non-English locale installed")
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        (1.0, "1"),
+        (1001.0, "1001"),
+        (-0.0, "0"),
+        (Decimal("1001.00"), "1001"),
+        (Decimal("1E+3"), "1000"),
+        (Decimal("12.50"), "1250"),
+        (1.5, "15"),
+        (1e20, "100000000000000000000"),
+        (1e-7, "1"),
+        (7, "7"),
+        (True, "TRUE"),
+    ],
+)
+def test_invoice_no_numeric_input(raw: object, expected: str) -> None:
+    assert normalize_invoice_no(raw) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (1.0, "1"),
+        (1001, "1001"),
+        (Decimal("1001.00"), "1001"),
+        (Decimal("2.5E+2"), "250"),
+        (1.25, "1.25"),
+        (1e-7, "0.0000001"),
+        (Decimal("0.10"), "0.10"),
+        (float("nan"), "NaN"),
+    ],
+)
+def test_plain_number_text(value: int | float | Decimal, expected: str) -> None:
+    assert plain_number_text(value) == expected
+
+
+@pytest.mark.parametrize(
+    ("value", "accepted"),
+    [
+        (Decimal("9999999999999.99"), True),
+        (Decimal("-9999999999999.99"), True),
+        ("99,99,99,99,99,999.99", True),
+        (Decimal("1e13"), False),
+        (Decimal("-1e13"), False),
+        (10**13, False),
+        (1e13, False),
+        ("10000000000000", False),
+        ("1." + "0" * 38, True),
+        ("1." + "0" * 39, False),
+        ("  " + "1." + "0" * 38 + "  ", True),
+    ],
+)
+def test_parse_money_cap(value: object, accepted: bool) -> None:
+    assert (parse_money(value) is not None) is accepted
+
+
+def test_max_money_constant() -> None:
+    assert Decimal("1e13") == MAX_MONEY
+
+
+money_inputs = st.one_of(
+    st.decimals(allow_nan=True, allow_infinity=True),
+    st.floats(),
+    st.integers(),
+    st.text(),
+    st.text(alphabet="0123456789.,-+() Rs₹INR", max_size=45),
+    st.from_regex(r"-?[0-9]{1,30}(\.[0-9]{1,30})?E[+-]?[0-9]{1,7}", fullmatch=True).map(Decimal),
+)
+
+
+@given(value=money_inputs)
+def test_round_money_never_raises_on_parsed_values(value: object) -> None:
+    parsed = parse_money(value)
+    if parsed is not None:
+        rounded = round_money(parsed)
+        assert rounded.copy_abs() <= MAX_MONEY
+
+
+def test_round_money_ignores_caller_context() -> None:
+    with localcontext() as context:
+        context.prec = 3
+        assert str(round_money(Decimal("123456.785"))) == "123456.79"
