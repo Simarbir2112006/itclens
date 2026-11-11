@@ -182,6 +182,12 @@ def test_load_config_file_rejects_bad_content(tmp_path: Path, content: bytes) ->
     assert SENTINEL not in str(excinfo.value)
 
 
+def test_load_state_names() -> None:
+    names = config_module.load_state_names()
+    assert names["27"] == "Maharashtra"
+    assert set(names) == load_config().valid_state_codes
+
+
 def test_package_data_readable() -> None:
     data_dir = resources.files("itclens").joinpath("data")
     for name in ("default_config.json", "state_codes.json"):

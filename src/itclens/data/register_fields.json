@@ -1,0 +1,231 @@
+{
+  "_note": "Invented starter lists based on general knowledge of common export layouts. Unverified against real Tally, Busy or Zoho exports; extend after testing with real headers. Header strings are stored normalized: lowercase, runs of other characters replaced by one space. How books label supplier credit notes and buyer debit notes or purchase returns is unverified, and the pairing logic is decided in the matching phase.",
+  "synonyms": {
+    "supplier_gstin": {
+      "strong": [
+        "gstin of supplier",
+        "supplier gstin",
+        "gstin uin",
+        "gstin uin of supplier",
+        "supplier gstin uin",
+        "party gstin",
+        "party gstin uin",
+        "vendor gstin",
+        "gstin",
+        "gstin no",
+        "gst no",
+        "gst number",
+        "party gst no"
+      ],
+      "weak": [
+        "gst registration no",
+        "registration no"
+      ]
+    },
+    "supplier_name": {
+      "strong": [
+        "supplier name",
+        "name of supplier",
+        "party name",
+        "vendor name",
+        "trade legal name",
+        "trade name",
+        "legal name",
+        "supplier"
+      ],
+      "weak": [
+        "particulars",
+        "party",
+        "name",
+        "ledger name",
+        "account"
+      ]
+    },
+    "doc_no": {
+      "strong": [
+        "invoice number",
+        "invoice no",
+        "inv no",
+        "supplier invoice no",
+        "supplier invoice number",
+        "supplier inv no",
+        "bill no",
+        "bill number",
+        "document number",
+        "document no",
+        "doc no"
+      ],
+      "weak": [
+        "voucher no",
+        "voucher number",
+        "vch no",
+        "reference no",
+        "ref no",
+        "reference"
+      ]
+    },
+    "doc_date": {
+      "strong": [
+        "invoice date",
+        "inv date",
+        "supplier invoice date",
+        "bill date",
+        "document date",
+        "doc date"
+      ],
+      "weak": [
+        "date",
+        "voucher date",
+        "vch date",
+        "reference date"
+      ]
+    },
+    "taxable_value": {
+      "strong": [
+        "taxable value",
+        "taxable amount",
+        "taxable amt",
+        "taxable",
+        "assessable value"
+      ],
+      "weak": [
+        "basic amount",
+        "basic value",
+        "net amount"
+      ]
+    },
+    "igst": {
+      "strong": [
+        "integrated tax",
+        "integrated tax amount",
+        "igst",
+        "igst amount",
+        "igst amt"
+      ],
+      "weak": []
+    },
+    "cgst": {
+      "strong": [
+        "central tax",
+        "central tax amount",
+        "cgst",
+        "cgst amount",
+        "cgst amt"
+      ],
+      "weak": []
+    },
+    "sgst": {
+      "strong": [
+        "state tax",
+        "state ut tax",
+        "state tax amount",
+        "sgst utgst",
+        "sgst utgst amount",
+        "sgst",
+        "sgst amount",
+        "sgst amt",
+        "utgst"
+      ],
+      "weak": []
+    },
+    "cess": {
+      "strong": [
+        "cess",
+        "cess amount",
+        "cess amt",
+        "compensation cess"
+      ],
+      "weak": []
+    },
+    "rate": {
+      "strong": [
+        "rate",
+        "tax rate",
+        "gst rate",
+        "rate of tax",
+        "rate percent"
+      ],
+      "weak": [
+        "gst",
+        "tax"
+      ]
+    },
+    "invoice_value": {
+      "strong": [
+        "invoice value",
+        "invoice amount",
+        "invoice total",
+        "total invoice value",
+        "bill amount",
+        "bill value",
+        "gross amount",
+        "total amount"
+      ],
+      "weak": [
+        "amount",
+        "value",
+        "total"
+      ]
+    },
+    "place_of_supply": {
+      "strong": [
+        "place of supply",
+        "pos",
+        "state of supply",
+        "supply state"
+      ],
+      "weak": [
+        "state",
+        "place"
+      ]
+    },
+    "doc_type": {
+      "strong": [
+        "voucher type",
+        "vch type",
+        "document type",
+        "doc type",
+        "invoice type",
+        "note type",
+        "type of document"
+      ],
+      "weak": [
+        "type"
+      ]
+    },
+    "reverse_charge": {
+      "strong": [
+        "reverse charge",
+        "reverse charge applicable",
+        "reverse charge y n",
+        "is reverse charge",
+        "rcm"
+      ],
+      "weak": [
+        "rc"
+      ]
+    }
+  },
+  "doc_type_values": {
+    "purchase": "INVOICE",
+    "purchases": "INVOICE",
+    "invoice": "INVOICE",
+    "tax invoice": "INVOICE",
+    "bill": "INVOICE",
+    "purchase invoice": "INVOICE",
+    "credit note": "CREDIT_NOTE",
+    "cr note": "CREDIT_NOTE",
+    "debit note": "DEBIT_NOTE",
+    "dr note": "DEBIT_NOTE"
+  },
+  "reverse_charge_values": {
+    "yes": true,
+    "y": true,
+    "true": true,
+    "1": true,
+    "no": false,
+    "n": false,
+    "false": false,
+    "0": false
+  }
+}

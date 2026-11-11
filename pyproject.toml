@@ -8,7 +8,9 @@ version = "0.1.0"
 description = "Reconcile GSTR-2B data against a purchase register."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "openpyxl>=3.1",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -37,6 +39,10 @@ python_version = "3.11"
 files = ["src"]
 disallow_untyped_defs = true
 warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["openpyxl", "openpyxl.*"]
+ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

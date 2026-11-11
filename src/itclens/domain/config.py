@@ -104,7 +104,12 @@ def _date_formats(raw: Mapping[str, Any]) -> tuple[str, ...]:
 
 
 def _state_codes() -> frozenset[str]:
-    return frozenset(read_packaged_json(STATE_CODES_FILE)["codes"])
+    return frozenset(load_state_names())
+
+
+def load_state_names() -> dict[str, str]:
+    """Return the packaged state and UT names keyed by two-digit code."""
+    return dict(read_packaged_json(STATE_CODES_FILE)["codes"])
 
 
 def load_config(overrides: Mapping[str, Any] | None = None) -> ReconConfig:
