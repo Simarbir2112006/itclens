@@ -1,0 +1,25 @@
+# Virtual environments
+.venv/
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+
+# Tool caches and reports
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+
+# Node
+node_modules/
+
+# Real files kept for local testing; never commit
+local_data/
