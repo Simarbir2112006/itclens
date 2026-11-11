@@ -1,0 +1,19 @@
+{
+  "_note": "Default values only. They are configurable and are not tax advice. Verify every value with your CA before relying on it. Textual months in date_formats (%b, %B) are read with a fixed English month table, not the system locale.",
+  "tolerance_taxable": 1.00,
+  "tolerance_tax": 1.00,
+  "_slabs_note": "Starter list that mixes past and present rate slabs, because older periods may be reconciled. Unverified: the owner must verify it with a CA before launch.",
+  "allowed_rate_slabs": [0, 0.25, 1.5, 3, 5, 12, 18, 28, 40],
+  "strip_fy_affixes": false,
+  "date_formats": [
+    "%d-%m-%Y",
+    "%d/%m/%Y",
+    "%d.%m.%Y",
+    "%Y-%m-%d",
+    "%Y/%m/%d",
+    "%d-%b-%Y",
+    "%d %b %Y",
+    "%d-%B-%Y",
+    "%d %B %Y"
+  ]
+}
